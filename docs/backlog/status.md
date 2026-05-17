@@ -10,6 +10,20 @@ Esta matriz compara o backlog planejado com o estado atual do código. A avalia�
 | Parcial | Existe parte da funcionalidade, mas falta algum requisito, tela, integração ou regra relevante |
 | Pendente | Não há implementação identificada no código atual |
 
+## Cobertura dos Critérios da PC2
+
+| Critério | Status | Evidência atual |
+|---|---|---|
+| Arquitetura | Feito | Backend em monólito modular com camadas `router`, `controller`, `service`, `repository`, `model` e `schema`; documentação em [Estrutura Atual dos Repositórios](../arquitetura/estrutura-inicial.md) |
+| Clean Code | Feito | Separação de responsabilidades por módulo, exceções de domínio padronizadas, settings centralizado e inicialização de banco protegida para produção |
+| Teste parametrizado | Feito | O backend possui 29 ocorrências de `@pytest.mark.parametrize`, cobrindo validações de schemas, CNJ, documentos, e-mails, status, limites e datas |
+| Teste de integração | Feito | Suítes em `tests/integration/` para repositórios e persistência, além de fluxos e2e em `tests/e2e/` |
+| Coverage | Feito | Suíte local validada com `pytest-cov`, mantendo cobertura acima de 98% |
+| Banco de dados completo | Feito | Models SQLAlchemy, relacionamentos, constraints, índices e migration inicial com Alembic |
+| Modelo físico do banco | Feito | DER Mermaid documentado em [Modelo Físico do Banco](../arquitetura/modelo-fisico.md) |
+| Integração com API externa | Feito | Integração com API pública DataJud, sincronização individual e em lote, retentativa e logs persistidos |
+| Lint ou derivados | Feito | Ruff configurado para lint, formatação e ordenação de imports; pipeline também prevê Bandit e Pip Audit |
+
 ## Resumo por Épico
 
 | Épico | Status geral | Observação |
@@ -61,8 +75,8 @@ Esta matriz compara o backlog planejado com o estado atual do código. A avalia�
 
 ## Lacunas Técnicas Importantes
 
-1. O backend já possui migration inicial com Alembic, mas ainda mantém `Base.metadata.create_all` no startup para facilitar ambientes locais/testes.
-2. O modelo físico está documentado e versionado em migration inicial; falta incorporar uma rotina de execução de migrations ao processo de deploy.
+1. O backend já possui migration inicial com Alembic e não executa `Base.metadata.create_all` em `APP_ENV=production`; falta incorporar `alembic upgrade head` ao processo automatizado de deploy.
+2. O modelo físico está documentado e versionado em migration inicial; futuras alterações de schema devem manter o DER e as migrations sincronizados.
 3. A integração externa jurídica existe via DataJud e possui retentativa para falhas temporárias; a sincronização em lote existe, mas ainda depende de acionamento manual.
 4. O frontend não acompanha a amplitude do backend; a maior parte das funcionalidades está disponível apenas via API.
 5. RBAC precisa ser refinado para os papéis reais do backlog.
@@ -70,7 +84,7 @@ Esta matriz compara o backlog planejado com o estado atual do código. A avalia�
 ## Próximos Passos Sugeridos
 
 1. Transformar a sincronização em lote DataJud em execução periódica agendada.
-2. Definir o fluxo de deploy para executar `alembic upgrade head`.
+2. Automatizar `alembic upgrade head` no fluxo de deploy.
 3. Criar telas administrativas mínimas para usuários, leads, clientes e processos.
 4. Expandir auditoria para clientes, processos, artigos e configurações.
 5. Implementar consentimento LGPD no formulário de leads.
