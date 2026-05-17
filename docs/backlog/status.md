@@ -18,7 +18,7 @@ Esta matriz compara o backlog planejado com o estado atual do código. A avalia�
 | Landing Page | Parcial | Backend de conteúdo, mídia e artigos existe; frontend público e painel editorial ainda são iniciais |
 | Gestão de Leads e Clientes | Parcial | Leads, clientes e observações existem; histórico completo e conversão lead-cliente ainda faltam |
 | Core Jurídico | Parcial | Processos, movimentações, status e anotações existem; campos como advogado responsável/comarca ainda não estão completos |
-| APIs Externas | Pendente | Não há consumo de Jusbrasil/CNJ/Receita; a integração externa atual é o Resend para e-mail |
+| APIs Externas | Parcial | Há sincronização manual com a API pública DataJud e log persistido de chamadas externas; ainda faltam consulta periódica, retentativa automática e notificações |
 | Notificações | Parcial | Há envio de e-mail para reset/criação de usuário; faltam notificações configuráveis e eventos jurídicos |
 | Backup, LGPD e Compliance | Pendente | Não há anonimização, consentimento registrado, exportação LGPD ou backup automatizado |
 | Agenda e Prazos | Pendente | Não há agenda, compromissos, prazos, feriados ou alertas |
@@ -44,11 +44,11 @@ Esta matriz compara o backlog planejado com o estado atual do código. A avalia�
 | US-14 | Parcial | Busca de clientes por nome, CPF e CNPJ; processos por cliente | Busca direta de cliente por número de processo |
 | US-15 | Feito | Observações internas de cliente com criação, listagem e edição | Melhorar tela de uso |
 | US-16 | Parcial | Cadastro de processo com CNJ, vara/court, tipo, parte contrária e cliente | Advogado responsável, comarca/área e regras mais completas |
-| US-17 | Feito | Movimentações manuais e timeline por processo | Integração com movimentações externas |
+| US-17 | Feito | Movimentações manuais, movimentações externas DataJud e timeline por processo | Melhorar tela de uso |
 | US-18 | Feito | Alteração de status com movimentação `SYSTEM` na mesma transação | Regras de transição mais específicas, se exigidas |
 | US-19 | Feito | Anotações internas de processo com criação, listagem e edição | Melhorar tela de uso |
-| US-20 | Pendente | Não identificado | Consumir API processual externa e inserir movimentações automaticamente |
-| US-21 | Pendente | Não identificado | Registrar chamadas externas, falhas, retentativas e notificação ao administrador |
+| US-20 | Parcial | `POST /api/v1/processes/{process_id}/datajud/sync-movements` consulta DataJud por número CNJ e insere novas movimentações como `EXTERNAL` | Automatizar consulta periódica dos processos ativos |
+| US-21 | Parcial | Tabela `external_api_logs` e `GET /api/v1/external-api-logs` registram sucesso/falha das chamadas DataJud | Retentativa automática e notificação ao administrador |
 | US-22 | Parcial | Resend envia e-mails de reset e boas-vindas | Notificações configuráveis por usuário/evento |
 | US-23 | Pendente | Não identificado | Notificar eventos de processos vinculados |
 | US-24 | Pendente | Não identificado | Anonimização de ex-clientes e regras de retenção |
@@ -63,13 +63,13 @@ Esta matriz compara o backlog planejado com o estado atual do código. A avalia�
 
 1. O backend ainda cria o banco com `Base.metadata.create_all`; não há Alembic/migrations.
 2. O modelo físico passou a estar documentado nesta documentação, mas ainda não há script SQL versionado.
-3. A integração externa de domínio jurídico ainda não existe. Para a entrega, Resend cobre integração externa genérica, mas não cobre Jusbrasil/CNJ.
+3. A integração externa jurídica existe via DataJud, mas ainda é acionada manualmente e não possui retentativa automática.
 4. O frontend não acompanha a amplitude do backend; a maior parte das funcionalidades está disponível apenas via API.
 5. RBAC precisa ser refinado para os papéis reais do backlog.
 
 ## Próximos Passos Sugeridos
 
-1. Implementar uma integração externa de domínio: Jusbrasil/CNJ ou Receita Federal.
+1. Automatizar a consulta periódica DataJud para processos ativos.
 2. Criar migrations com Alembic para versionar o banco.
 3. Criar telas administrativas mínimas para usuários, leads, clientes e processos.
 4. Expandir auditoria para clientes, processos, artigos e configurações.

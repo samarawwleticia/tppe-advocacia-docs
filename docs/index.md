@@ -14,7 +14,7 @@ Nesta etapa, o projeto está organizado em três repositórios na organização 
 
 ## Estado Atual
 
-A implementação mais avançada está no backend. A branch `main` do backend contém módulos de autenticação, usuários, auditoria, configuração institucional, mídia, artigos, leads, clientes, processos, movimentações e anotações.
+A implementação mais avançada está no backend. A branch `main` do backend contém módulos de autenticação, usuários, auditoria, configuração institucional, mídia, artigos, leads, clientes, processos, movimentações, anotações, integração DataJud e logs de APIs externas.
 
 O frontend ainda está em estágio inicial, com health check e envio público de leads. As telas administrativas previstas no backlog ainda não foram implementadas.
 

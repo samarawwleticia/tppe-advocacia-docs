@@ -132,6 +132,21 @@ erDiagram
         timestamptz updated_at
     }
 
+    EXTERNAL_API_LOGS {
+        int id PK
+        enum provider
+        enum operation
+        enum status
+        int process_id FK
+        varchar tribunal_alias
+        varchar request_identifier
+        int http_status
+        varchar error_code
+        text error_message
+        int created_by FK
+        timestamptz created_at
+    }
+
     AUDIT_LOGS {
         int id PK
         enum action
@@ -161,6 +176,8 @@ erDiagram
     PROCESSES ||--o{ PROCESS_NOTES : process_id
     USERS ||--o{ PROCESS_NOTES : created_by
     USERS ||--o{ PROCESS_NOTES : updated_by
+    PROCESSES ||--o{ EXTERNAL_API_LOGS : process_id
+    USERS ||--o{ EXTERNAL_API_LOGS : created_by
 ```
 
 ## Tabelas
@@ -280,7 +297,7 @@ erDiagram
 | `title` | varchar(150) | not null |
 | `description` | text | nullable |
 | `occurred_at` | timestamptz | not null, default `now()` |
-| `source` | enum `MANUAL`/`SYSTEM` | not null, default `MANUAL` |
+| `source` | enum `MANUAL`/`SYSTEM`/`EXTERNAL` | not null, default `MANUAL` |
 | `created_by` | integer | FK `users.id`, nullable |
 | `created_at` | timestamptz | not null, default `now()` |
 
@@ -314,6 +331,23 @@ Indice composto: `ix_process_movements_process_occurred(process_id, occurred_at)
 
 `audit_logs` guarda snapshots textuais da operação. Os campos `performed_by_id` e `target_user_id` não estão declarados como FK no model atual.
 
+### `external_api_logs`
+
+| Coluna | Tipo | Restrições |
+|---|---|---|
+| `id` | integer | PK, index |
+| `provider` | enum `DATAJUD` | not null, index |
+| `operation` | enum `PROCESS_MOVEMENT_SYNC` | not null, index |
+| `status` | enum `SUCCESS`/`FAILURE` | not null, index |
+| `process_id` | integer | FK `processes.id`, nullable, index, on delete set null |
+| `tribunal_alias` | varchar(30) | nullable |
+| `request_identifier` | varchar(120) | nullable |
+| `http_status` | integer | nullable |
+| `error_code` | varchar(80) | nullable |
+| `error_message` | text | nullable |
+| `created_by` | integer | FK `users.id`, nullable |
+| `created_at` | timestamptz | not null, default `now()` |
+
 ## Regras Físicas Relevantes
 
 - `clients.cpf` e `clients.cnpj` são únicos, mas nullable.
@@ -322,3 +356,4 @@ Indice composto: `ix_process_movements_process_occurred(process_id, occurred_at)
 - `client_notes` é apagado em cascata quando o cliente é removido.
 - `processes.client_id` usa `ondelete="RESTRICT"`, impedindo remoção direta de cliente vinculado a processo.
 - `leads.assigned_to` usa `ondelete="SET NULL"`.
+- `external_api_logs.process_id` usa `ondelete="SET NULL"` para preservar o histórico da chamada mesmo se o processo for removido.
