@@ -1,10 +1,6 @@
-# Estrutura Inicial dos Repositórios
+# Estrutura Atual dos Repositórios
 
-Esta entrega organiza o projeto em três repositórios independentes dentro da mesma organização no Git:
-
-- `tppe-advocacia-backend`: API em FastAPI com estrutura MVC e Postgres
-- `tppe-advocacia-frontend`: aplicação React com Vite para consumir a API
-- `tppe-advocacia-docs`: documentação técnica em MkDocs
+Esta página descreve o estado atual dos repositórios após a integração da arquitetura modular do backend.
 
 ## Visão Geral
 
@@ -12,15 +8,21 @@ Esta entrega organiza o projeto em três repositórios independentes dentro da m
 Projeto-Advocacia-TPPE/
 ├── tppe-advocacia-backend/
 │   ├── app/
-│   │   ├── controllers/
-│   │   ├── core/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   ├── schemas/
-│   │   └── views/
+│   │   ├── api/
+│   │   ├── config/
+│   │   ├── db/
+│   │   ├── modules/
+│   │   └── shared/
+│   ├── docs/
+│   ├── tests/
+│   │   ├── unit/
+│   │   ├── integration/
+│   │   └── e2e/
 │   ├── docker-compose.yml
 │   ├── Dockerfile
-│   └── requirements.txt
+│   ├── pyproject.toml
+│   ├── requirements.txt
+│   └── requirements-dev.txt
 ├── tppe-advocacia-frontend/
 │   ├── src/
 │   │   ├── components/
@@ -40,38 +42,86 @@ Projeto-Advocacia-TPPE/
 
 - Python + FastAPI
 - SQLAlchemy
-- Postgres
+- PostgreSQL
+- Pydantic Settings
+- JWT com PyJWT
+- Resend para envio de e-mail
 - Docker Compose
+- Ruff, Pytest, Pytest-Cov, Bandit e Pip Audit
 
-### Organização MVC
+### Padrão Arquitetural
 
-- `models/`: entidades e mapeamento ORM
-- `controllers/`: regras de negócio
-- `views/`: camada HTTP com endpoints
-- `routes/`: agregação de rotas
-- `schemas/`: contratos de entrada e saída
-- `core/`: configuração e acesso ao banco
+O backend segue um **monólito modular**. Cada domínio do sistema fica isolado em `app/modules/<dominio>/`, com camadas internas próprias.
 
-### Endpoints iniciais
-
-- `GET /api/v1/health`
-- `GET /api/v1/leads`
-- `POST /api/v1/leads`
-
-### Execucao local
-
-Para rodar o backend em uma maquina limpa:
-
-```bash
-cp .env.example .env
-docker compose up -d db
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+```text
+app/modules/<dominio>/
+├── model.py       # modelo ORM SQLAlchemy
+├── schema.py      # contratos Pydantic de entrada e saída
+├── repository.py  # acesso ao banco de dados
+├── service.py     # regras de negócio
+├── controller.py  # orquestração da operação
+└── router.py      # endpoints HTTP FastAPI
 ```
 
-Se as portas `8000` ou `5432` ja estiverem em uso, ajuste `API_HOST_PORT` e `POSTGRES_PORT` no `.env`.
+Nem todos os módulos precisam de todas as camadas. O módulo `email`, por exemplo, possui um `protocol.py`, uma implementação real com Resend e uma implementação fake para testes.
+
+### Módulos Atuais
+
+| Módulo | Responsabilidade |
+|---|---|
+| `auth` | Login, emissão de JWT e recuperação de senha |
+| `users` | Cadastro, edição, listagem e desativação de usuários |
+| `audit_logs` | Registro e consulta de eventos de auditoria |
+| `office_config` | Dados institucionais do escritório e conteúdo da landing page |
+| `media` | Upload e servimento de imagens |
+| `articles` | Artigos, rascunhos, publicação e preview |
+| `leads` | Recepção e gestão de leads |
+| `clients` | Cadastro, edição, busca e observações de clientes |
+| `processes` | Processos, movimentações, status e anotações internas |
+| `email` | Abstração de envio de e-mail via Resend |
+| `health` | Health check da API e do banco |
+
+### Fluxo de Requisição
+
+```text
+HTTP Request
+  └─► router.py
+        └─► controller.py
+              └─► service.py
+                    └─► repository.py
+                          └─► model.py
+  ◄── Response serializada por schema.py
+```
+
+### Código Compartilhado
+
+| Caminho | Uso |
+|---|---|
+| `app/api/router.py` | Agrega os routers dos módulos |
+| `app/config/settings.py` | Configurações e variáveis de ambiente |
+| `app/db/database.py` | Engine, sessão e inicialização do banco |
+| `app/shared/auth_deps.py` | Dependências de autenticação e autorização |
+| `app/shared/base_model.py` | Base declarativa do SQLAlchemy |
+| `app/shared/email_deps.py` | Injeção do serviço de e-mail |
+| `app/shared/exceptions.py` | Exceções de negócio padronizadas |
+| `app/shared/responses.py` | Envelopes de resposta da API |
+| `app/shared/types.py` | Tipos compartilhados, como `Role` |
+
+### Testes e Qualidade
+
+O backend possui três camadas de teste:
+
+- `tests/unit/`: regras de negócio e validações isoladas.
+- `tests/integration/`: repositórios e persistência.
+- `tests/e2e/`: endpoints HTTP com FastAPI e PostgreSQL.
+
+O CI executa:
+
+- `ruff format --check`
+- `ruff check`
+- `bandit -r app/ -ll`
+- `pip-audit -r requirements.txt`
+- `pytest` para unitários, integração e e2e com coverage.
 
 ## Frontend
 
@@ -79,20 +129,17 @@ Se as portas `8000` ou `5432` ja estiverem em uso, ajuste `API_HOST_PORT` e `POS
 
 - React
 - Vite
+- Fetch API
 
-### Organização inicial
+### Estado Atual
 
-- `components/`: componentes reutilizáveis da interface
-- `services/`: integração com a API
-- `App.jsx`: composição da página inicial
+O frontend ainda é uma base inicial. Ele possui:
 
-### Integração
+- health check da API;
+- formulário público de envio de lead;
+- configuração por `VITE_API_URL`.
 
-O frontend usa a variável `VITE_API_URL` para apontar para a API. Por padrão, ela está configurada para:
-
-```env
-VITE_API_URL=http://localhost:8000/api/v1
-```
+As telas administrativas previstas no backlog, como painel de usuários, clientes, processos, artigos e configurações, ainda estão pendentes.
 
 ## Documentação
 
@@ -101,8 +148,8 @@ VITE_API_URL=http://localhost:8000/api/v1
 - MkDocs
 - Material for MkDocs
 
-### Organização inicial
+### Organização
 
-- `docs/`: páginas da documentação
-- `mkdocs.yml`: configuração do site
-- `.github/workflows/deploy.yml`: publicação automática no GitHub Pages
+- `docs/backlog/`: backlog, requisitos e status da implementação.
+- `docs/arquitetura/`: estrutura técnica e modelo físico do banco.
+- `mkdocs.yml`: navegação e configuração do site.
