@@ -43,6 +43,7 @@ Projeto-Advocacia-TPPE/
 - Python + FastAPI
 - SQLAlchemy
 - PostgreSQL
+- Alembic para migrations
 - Pydantic Settings
 - JWT com PyJWT
 - Resend para envio de e-mail

@@ -3,7 +3,7 @@
 O modelo físico abaixo representa as tabelas persistidas pelo backend atual. A base usa PostgreSQL em produção/local via Docker Compose e SQLAlchemy como ORM.
 
 !!! info "Observação"
-    O projeto ainda não possui migrations com Alembic. Hoje o schema é criado pela aplicação com `Base.metadata.create_all`. Este documento registra o modelo físico esperado a partir dos models SQLAlchemy atuais.
+    O schema passou a ser versionado com Alembic em `alembic/versions`. A migration inicial representa o modelo físico documentado nesta página.
 
 ## Diagrama ER
 

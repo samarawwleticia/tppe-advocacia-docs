@@ -18,7 +18,7 @@ Esta matriz compara o backlog planejado com o estado atual do código. A avalia�
 | Landing Page | Parcial | Backend de conteúdo, mídia e artigos existe; frontend público e painel editorial ainda são iniciais |
 | Gestão de Leads e Clientes | Parcial | Leads, clientes e observações existem; histórico completo e conversão lead-cliente ainda faltam |
 | Core Jurídico | Parcial | Processos, movimentações, status e anotações existem; campos como advogado responsável/comarca ainda não estão completos |
-| APIs Externas | Parcial | Há sincronização manual com a API pública DataJud e log persistido de chamadas externas; ainda faltam consulta periódica, retentativa automática e notificações |
+| APIs Externas | Parcial | Há sincronização manual com a API pública DataJud, retentativa para falhas temporárias e log persistido de chamadas externas; ainda faltam consulta periódica e notificações |
 | Notificações | Parcial | Há envio de e-mail para reset/criação de usuário; faltam notificações configuráveis e eventos jurídicos |
 | Backup, LGPD e Compliance | Pendente | Não há anonimização, consentimento registrado, exportação LGPD ou backup automatizado |
 | Agenda e Prazos | Pendente | Não há agenda, compromissos, prazos, feriados ou alertas |
@@ -48,7 +48,7 @@ Esta matriz compara o backlog planejado com o estado atual do código. A avalia�
 | US-18 | Feito | Alteração de status com movimentação `SYSTEM` na mesma transação | Regras de transição mais específicas, se exigidas |
 | US-19 | Feito | Anotações internas de processo com criação, listagem e edição | Melhorar tela de uso |
 | US-20 | Parcial | `POST /api/v1/processes/{process_id}/datajud/sync-movements` consulta DataJud por número CNJ e insere novas movimentações como `EXTERNAL` | Automatizar consulta periódica dos processos ativos |
-| US-21 | Parcial | Tabela `external_api_logs` e `GET /api/v1/external-api-logs` registram sucesso/falha das chamadas DataJud | Retentativa automática e notificação ao administrador |
+| US-21 | Parcial | Tabela `external_api_logs`, `GET /api/v1/external-api-logs` e retentativa automática para falhas temporárias do DataJud | Notificação ao administrador e política mais completa de retentativas assíncronas |
 | US-22 | Parcial | Resend envia e-mails de reset e boas-vindas | Notificações configuráveis por usuário/evento |
 | US-23 | Pendente | Não identificado | Notificar eventos de processos vinculados |
 | US-24 | Pendente | Não identificado | Anonimização de ex-clientes e regras de retenção |
@@ -61,16 +61,16 @@ Esta matriz compara o backlog planejado com o estado atual do código. A avalia�
 
 ## Lacunas Técnicas Importantes
 
-1. O backend ainda cria o banco com `Base.metadata.create_all`; não há Alembic/migrations.
-2. O modelo físico passou a estar documentado nesta documentação, mas ainda não há script SQL versionado.
-3. A integração externa jurídica existe via DataJud, mas ainda é acionada manualmente e não possui retentativa automática.
+1. O backend já possui migration inicial com Alembic, mas ainda mantém `Base.metadata.create_all` no startup para facilitar ambientes locais/testes.
+2. O modelo físico está documentado e versionado em migration inicial; falta incorporar uma rotina de execução de migrations ao processo de deploy.
+3. A integração externa jurídica existe via DataJud e possui retentativa para falhas temporárias, mas ainda é acionada manualmente.
 4. O frontend não acompanha a amplitude do backend; a maior parte das funcionalidades está disponível apenas via API.
 5. RBAC precisa ser refinado para os papéis reais do backlog.
 
 ## Próximos Passos Sugeridos
 
 1. Automatizar a consulta periódica DataJud para processos ativos.
-2. Criar migrations com Alembic para versionar o banco.
+2. Definir o fluxo de deploy para executar `alembic upgrade head`.
 3. Criar telas administrativas mínimas para usuários, leads, clientes e processos.
 4. Expandir auditoria para clientes, processos, artigos e configurações.
 5. Implementar consentimento LGPD no formulário de leads.
