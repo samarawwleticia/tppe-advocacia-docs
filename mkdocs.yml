@@ -63,3 +63,5 @@ nav:
   - Arquitetura:
     - Estrutura Atual: arquitetura/estrutura-inicial.md
     - Modelo Físico do Banco: arquitetura/modelo-fisico.md
+  - Protótipo: prototipo.md
+
